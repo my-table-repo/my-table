@@ -1,0 +1,27 @@
+{
+    "name": "my-table-monorepo",
+    "private": true,
+    "packageManager": "pnpm@9.1.0",
+    "scripts": {
+      "build": "turbo run build",
+      "dev": "turbo run dev --parallel",
+      "test": "turbo run test",
+      "lint": "turbo run lint",
+      "typecheck": "turbo run typecheck",
+      "clean": "turbo run clean && rm -rf node_modules",
+      "changeset": "changeset",
+      "release": "turbo run build && changeset publish",
+      "format": "prettier --write \"**/*.{ts,tsx,md,json}\""
+    },
+    "devDependencies": {
+      "@changesets/cli": "^2.27.1",
+      "turbo": "^2.0.6",
+      "typescript": "^5.5.3",
+      "prettier": "^3.3.2",
+      "eslint": "^9.6.0",
+      "@typescript-eslint/eslint-plugin": "^7.16.0",
+      "@typescript-eslint/parser": "^7.16.0",
+      "vitest": "^2.0.2",
+      "@vitest/coverage-v8": "^2.0.2"
+    }
+  }

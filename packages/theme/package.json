@@ -1,0 +1,23 @@
+{
+    "name": "@my-table/theme",
+    "version": "0.1.0",
+    "description": "Prebuilt CSS themes for @my-table",
+    "files": ["dist"],
+    "exports": {
+      "./default.css": "./dist/default.css",
+      "./base.css": "./dist/base.css"
+    },
+    "scripts": {
+      "build": "postcss src/*.css --dir dist --use autoprefixer cssnano",
+      "clean": "rm -rf dist"
+    },
+    "devDependencies": {
+      "postcss": "^8.4.39",
+      "postcss-cli": "^11.0.0",
+      "autoprefixer": "^10.4.19",
+      "cssnano": "^7.0.4"
+    },
+    "publishConfig": {
+      "access": "public"
+    }
+  }
