@@ -1,10 +1,13 @@
-// packages/react/src/useTable.ts
 import { useMemo, useSyncExternalStore } from 'react';
-import { createTable } from '../../core/src/table';
-import { TableOptions } from '../../core/src/types';
+import { createTable } from '@my-table/core';
+import type { ColumnDef } from '@my-table/core';
 
-export function useTable<T>(options: TableOptions<T>) {
-  const table = useMemo(() => createTable(options), []); // deps handled carefully in real impl
-  useSyncExternalStore(table.subscribe, table.getState);
-  return table; // has .getRows(), .setSorting(), .toggleSort(), etc. — fully typed
+export function useTable<T>(opts: { data: T[]; columns: ColumnDef<T>[] }) {
+  const columnKey = opts.columns.map((c) => c.id).join('\0');
+  const table = useMemo(
+    () => createTable(opts),
+    [opts.data, columnKey],
+  );
+  useSyncExternalStore(table.subscribe, () => table.getSorting());
+  return table;
 }

@@ -1,0 +1,133 @@
+.mt-page {
+  padding: 48px 32px 64px;
+  text-align: left;
+}
+
+.mt-header {
+  margin-bottom: 28px;
+}
+
+.mt-title {
+  font-size: 32px;
+  letter-spacing: -0.5px;
+  margin: 0 0 8px;
+}
+
+.mt-subtitle {
+  margin: 0;
+  font-size: 15px;
+  color: var(--text);
+  opacity: 0.85;
+}
+
+.mt-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.mt-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.mt-th {
+  text-align: left;
+  padding: 14px 20px;
+  cursor: pointer;
+  color: var(--text);
+  font-weight: 500;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--border);
+  background: var(--code-bg);
+  user-select: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.mt-th:hover {
+  background: var(--accent-bg);
+  color: var(--text-h);
+}
+
+.mt-th--sorted {
+  color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.mt-th-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mt-sort-icon {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.mt-sort-icon--idle {
+  opacity: 0.35;
+}
+
+.mt-sort-icon--active {
+  color: var(--accent);
+}
+
+.mt-row td {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-h);
+}
+
+.mt-row:last-child td {
+  border-bottom: none;
+}
+
+.mt-row:hover td {
+  background: var(--accent-bg);
+}
+
+.mt-cell-name {
+  font-weight: 500;
+}
+
+.mt-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.mt-badge--active {
+  color: #166534;
+  background: rgba(34, 197, 94, 0.15);
+}
+
+.mt-badge--away {
+  color: #92400e;
+  background: rgba(245, 158, 11, 0.15);
+}
+
+.mt-badge--inactive {
+  color: var(--text);
+  background: var(--code-bg);
+}
+
+@media (prefers-color-scheme: dark) {
+  .mt-badge--active {
+    color: #86efac;
+    background: rgba(34, 197, 94, 0.2);
+  }
+
+  .mt-badge--away {
+    color: #fcd34d;
+    background: rgba(245, 158, 11, 0.2);
+  }
+}

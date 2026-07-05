@@ -1,0 +1,123 @@
+@import './base.css';
+
+.mt-card {
+  background: var(--mt-color-bg);
+  border: 1px solid var(--mt-color-border);
+  border-radius: var(--mt-radius);
+  overflow: hidden;
+}
+
+.mt-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--mt-color-border);
+}
+
+.mt-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--mt-font-size);
+}
+
+/* header */
+.mt-th {
+  text-align: left;
+  padding: var(--mt-cell-padding-y) var(--mt-cell-padding-x);
+  color: var(--mt-color-header-text);
+  font-weight: 500;
+  font-size: var(--mt-font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border-bottom: 1px solid var(--mt-color-border);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.mt-th:hover {
+  background: var(--mt-color-bg-hover);
+}
+
+.mt-th--sorted {
+  color: var(--mt-color-text);
+}
+
+.mt-th-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mt-sort-icon {
+  font-size: 11px;
+  opacity: 0.4;
+}
+
+.mt-sort-icon--active {
+  opacity: 1;
+  color: #2383e2;
+}
+
+/* rows */
+.mt-row {
+  height: var(--mt-row-height);
+}
+
+.mt-table--dense .mt-row {
+  height: var(--mt-row-height-dense);
+}
+
+.mt-row td {
+  padding: var(--mt-cell-padding-y) var(--mt-cell-padding-x);
+  border-bottom: 1px solid var(--mt-color-border-subtle);
+}
+
+.mt-row:hover td {
+  background: var(--mt-color-bg-hover);
+}
+
+.mt-row:last-child td {
+  border-bottom: none;
+}
+
+.mt-table--striped tbody tr:nth-child(even) td {
+  background: #fbfbfa;
+}
+
+.mt-cell-name {
+  font-weight: 500;
+}
+
+.mt-empty {
+  text-align: center;
+  padding: 32px;
+  color: var(--mt-color-text-muted);
+  font-size: var(--mt-font-size-sm);
+}
+
+/* status badges */
+.mt-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: var(--mt-font-size-sm);
+  font-weight: 500;
+}
+
+.mt-badge--active {
+  background: var(--mt-color-badge-active-bg);
+  color: var(--mt-color-badge-active-text);
+}
+
+.mt-badge--away {
+  background: var(--mt-color-badge-away-bg);
+  color: var(--mt-color-badge-away-text);
+}
+
+.mt-badge--inactive {
+  background: var(--mt-color-badge-inactive-bg);
+  color: var(--mt-color-badge-inactive-text);
+}
