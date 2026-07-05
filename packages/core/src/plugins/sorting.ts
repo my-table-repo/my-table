@@ -1,6 +1,6 @@
 // packages/core/src/plugins/sorting.ts
 
-import { Plugin } from "./types";
+import type { Plugin } from "./types";
 
 export type SortingState = { id: string; desc: boolean }[];
 
@@ -15,7 +15,9 @@ export function sortingPlugin<T>(): Plugin<T, {
     processRows: (rows, state) => {
       const sorting = state.sorting as SortingState;
       if (!sorting?.length) return rows;
-      const [{ id, desc }] = sorting; // multi-sort: reduce over all entries
+      const [entry] = sorting;
+      if (!entry) return rows;
+      const { id, desc } = entry;
       return [...rows].sort((a, b) => {
         const av = a.getValue(id), bv = b.getValue(id);
         const cmp = av! < bv! ? -1 : av! > bv! ? 1 : 0;

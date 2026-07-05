@@ -109,3 +109,44 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+.playground-page {
+  padding: 32px;
+  text-align: left;
+}
+
+.playground-title {
+  margin: 0 0 8px;
+  font-size: 28px;
+  letter-spacing: -0.02em;
+  color: var(--text-h);
+}
+
+.playground-subtitle {
+  margin: 0 0 24px;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.mt-playground-badge {
+  display: inline-flex;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.mt-playground-badge--active {
+  background: #ddf4e4;
+  color: #1a7f37;
+}
+
+.mt-playground-badge--away {
+  background: #fef3d7;
+  color: #9a6700;
+}
+
+.mt-playground-badge--inactive {
+  background: var(--code-bg);
+  color: var(--text);
+}

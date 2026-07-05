@@ -1,45 +1,52 @@
 {
-    "name": "@my-table/react",
-    "version": "0.1.0",
-    "description": "React bindings for @my-table/core",
-    "type": "module",
-    "main": "./dist/index.cjs",
-    "module": "./dist/index.js",
-    "types": "./dist/index.d.ts",
-    "exports": {
-      ".": {
-        "types": "./dist/index.d.ts",
-        "import": "./dist/index.js",
-        "require": "./dist/index.cjs"
-      }
+  "name": "@my-table/react",
+  "version": "0.1.0",
+  "description": "React bindings for @my-table/core",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
-    "files": ["dist"],
-    "sideEffects": false,
-    "scripts": {
-      "build": "tsup",
-      "dev": "tsup --watch",
-      "test": "vitest run",
-      "typecheck": "tsc --noEmit",
-      "clean": "rm -rf dist"
-    },
-    "peerDependencies": {
-      "react": ">=18.0.0",
-      "react-dom": ">=18.0.0"
-    },
-    "dependencies": {
-      "@my-table/core": "workspace:*"
-    },
-    "devDependencies": {
-      "@types/react": "^18.3.3",
-      "@types/react-dom": "^18.3.0",
-      "react": "^18.3.1",
-      "react-dom": "^18.3.1",
-      "tsup": "^8.1.0",
-      "typescript": "^5.5.3",
-      "vitest": "^2.0.2",
-      "@testing-library/react": "^16.0.0"
-    },
-    "publishConfig": {
-      "access": "public"
-    }
+    "./styles.css": "./dist/styles.css"
+  },
+  "files": ["dist"],
+  "sideEffects": ["**/*.css"],
+  "scripts": {
+    "build:css": "tailwindcss -i ./src/styles.css -o ./dist/styles.css --minify",
+    "build": "tsup && pnpm build:css",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "dependencies": {
+    "@my-table/core": "workspace:*",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.6.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@testing-library/react": "^16.0.0",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.39",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwindcss": "^3.4.17",
+    "tsup": "^8.1.0",
+    "typescript": "^5.5.3",
+    "vitest": "^2.0.2"
+  },
+  "publishConfig": {
+    "access": "public"
   }
+}

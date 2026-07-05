@@ -1,6 +1,6 @@
 // packages/core/src/table.ts
 
-import { Listener, Row, TableInstance, TableOptions, TableState } from "./types";
+import type { Listener, Row, TableInstance, TableOptions, TableState } from "./types";
 
 export function createTable<T>(options: TableOptions<T>): TableInstance<T> {
     const listeners = new Set<Listener>();
@@ -45,5 +45,5 @@ export function createTable<T>(options: TableOptions<T>): TableInstance<T> {
       Object.assign(table, plugin.extend?.(table));
     }
   
-    return table as TableInstance<T> & UnionOfPluginMethods; // typed via generic inference in real impl
+    return table;
   }

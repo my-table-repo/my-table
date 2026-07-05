@@ -1,52 +1,70 @@
-export type ColumnDef<T> = {
-    id: string;
-    accessor: (row: T) => unknown;
-    header: string;
-    enableSorting?: boolean;
-    width?: number | string;
-  };
-  
-  export type SortingState = { id: string; desc: boolean } | null;
-  
-  export function createTable<T>(opts: {
-    data: T[];
-    columns: ColumnDef<T>[];
-  }) {
-    const listeners = new Set<() => void>();
-    let sorting: SortingState = null;
-  
-    function notify() {
-      listeners.forEach((l) => l());
-    }
-  
-    return {
-      subscribe(l: () => void) {
-        listeners.add(l);
-        return () => listeners.delete(l);
-      },
-      getColumns: () => opts.columns,
-      toggleSort(columnId: string) {
-        sorting =
-          !sorting || sorting.id !== columnId
-            ? { id: columnId, desc: false }
-            : !sorting.desc
-            ? { id: columnId, desc: true }
-            : null;
-        notify();
-      },
-      getSorting: () => sorting,
-      getRows() {
-        let rows = opts.data.map((original, i) => ({ id: String(i), original }));
-        if (sorting) {
-          const col = opts.columns.find((c) => c.id === sorting!.id)!;
-          rows = [...rows].sort((a, b) => {
-            const av = col.accessor(a.original) as any;
-            const bv = col.accessor(b.original) as any;
-            const cmp = av < bv ? -1 : av > bv ? 1 : 0;
-            return sorting!.desc ? -cmp : cmp;
-          });
-        }
-        return rows;
-      },
-    };
-  }
+export { createTable } from './create-table';
+
+export type {
+  ColumnDef,
+  Listener,
+  Row,
+  SortingState,
+  TableApi,
+  TableInstance,
+  TableOptions,
+  TableRow,
+  TableState,
+} from './types';
+
+export {
+  COLUMN_PREFERENCES_STORAGE_PREFIX,
+  COLUMN_SETTINGS_COLUMN_ID,
+  COLUMN_SETTINGS_WIDTH,
+  DEFAULT_COLUMN_WIDTH,
+  MIN_COLUMN_WIDTH,
+  ROW_NUMBER_COLUMN_ID,
+  ROW_NUMBER_WIDTH,
+} from './constants';
+
+export {
+  clampColumnWidth,
+  getInitialColumnWidths,
+  mergeColumnWidths,
+  resolvePairColumnResize,
+  scaleColumnWidthsToFit,
+  sumColumnWidths,
+} from './column-sizing';
+export type { SizedColumn } from './column-sizing';
+
+export {
+  createInitialColumnPreferences,
+  createLocalStorageColumnPreferencesStorage,
+  createMemoryColumnPreferencesStorage,
+  getColumnLabel,
+  getColumnSettingsItems,
+  getDefaultColumnOrder,
+  getDefaultHiddenColumns,
+  getVisibleColumns,
+  mergeColumnOrder,
+  reorderColumnPrefs,
+  resetColumnPreferences,
+  syncColumnPreferences,
+  toggleColumnVisibilityPrefs,
+} from './column-preferences';
+export type {
+  ColumnPreferenceInput,
+  ColumnPrefs,
+  ColumnPreferencesStorage,
+  ColumnSettingsItem,
+} from './column-preferences';
+
+export {
+  canResizeColumnPair,
+  canSortColumn,
+  createRowNumberColumnMeta,
+  createSettingsColumnMeta,
+  isRowNumberColumn,
+  isSettingsColumn,
+  isSpecialColumn,
+} from './column-layout';
+
+export { toSortableColumnDefs } from './columns';
+
+export { sortingPlugin } from './plugins/sorting';
+export type { Plugin } from './plugins/types';
