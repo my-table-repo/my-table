@@ -2,44 +2,20 @@ import * as React from 'react';
 import type { ReactNode } from 'react';
 
 import {
-  canResizeColumnPair,
-  canSortColumn,
-  createRowNumberColumnMeta,
-  createSettingsColumnMeta,
-  getInitialColumnWidths,
   isRowNumberColumn,
   isSettingsColumn,
-  mergeColumnWidths,
-  resolvePairColumnResize,
-  scaleColumnWidthsToFit,
   sumColumnWidths,
-  toSortableColumnDefs,
 } from '@my-table/core';
-import type { ColumnPreferenceInput, SizedColumn } from '@my-table/core';
+import type { ColumnDef } from '@my-table/core';
 
 import { DataTableColumnSettings } from './components/DataTableColumnSettings';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from './components/ui/table';
-import { useDataTableColumnPreferences } from './hooks/useDataTableColumnPreferences';
 import { cn } from './lib/utils';
 import { useTable } from './useTable';
 
-export type DataTableColumn<T> = Omit<ColumnPreferenceInput, 'header'> &
-  SizedColumn & {
-    header: ReactNode;
-    accessor?: (row: T) => unknown;
-    cell: (row: T) => ReactNode;
-    enableSorting?: boolean;
-    enableResize?: boolean;
-    className?: string;
-    headerClassName?: string;
-  };
+export type DataTableColumn<T> = Omit<ColumnDef<T>, 'header' | 'cell'> & {
+  header: ReactNode;
+  cell: (row: T) => ReactNode;
+};
 
 /** @deprecated Use `DataTableColumn` instead */
 export type ReactColumnDef<T> = DataTableColumn<T>;
@@ -62,68 +38,22 @@ export type DataTableProps<T> = {
   enableColumnSettings?: boolean;
 };
 
-type LayoutColumn<T> = DataTableColumn<T> & { id: string };
-
-type ResizeSession = {
-  columnIndex: number;
-  pointerId: number;
-  startX: number;
-  startWidth: number;
-  neighborStartWidth: number;
-};
-
-function withRowNumberColumn<T>(
-  columns: LayoutColumn<T>[],
-  showRowNumbers: boolean,
-): LayoutColumn<T>[] {
-  if (!showRowNumbers) {
-    return columns;
-  }
-
-  const meta = createRowNumberColumnMeta();
-
-  return [
-    {
-      ...meta,
-      header: '#',
-      headerClassName: 'text-center',
-      className: 'text-center text-muted-foreground tabular-nums',
-      cell: () => null,
-    },
-    ...columns,
-  ];
-}
-
-function withSettingsColumn<T>(
-  columns: LayoutColumn<T>[],
-  settingsHeader: ReactNode,
-  enabled: boolean,
-): LayoutColumn<T>[] {
-  if (!enabled) {
-    return columns;
-  }
-
-  const meta = createSettingsColumnMeta();
-
-  return [
-    ...columns,
-    {
-      ...meta,
-      header: settingsHeader,
-      headerClassName: 'p-0 text-center',
-      className: 'p-0',
-      cell: () => null,
-    },
-  ];
-}
-
 function SortIcon({ active, desc }: { active: boolean; desc: boolean }) {
-  if (!active) {
-    return <span className="text-[11px] opacity-40">↕</span>;
-  }
-
-  return <span className="text-[11px] text-primary">{desc ? '↓' : '↑'}</span>;
+  return (
+    <span className={cn('mt-sort-icon', active && 'mt-sort-icon--active')}>
+      {active ? (desc ? '↓' : '↑') : '↕'}
+    </span>
+  );
 }
+
+type ResizeHandleProps = {
+  columnId: string;
+  isActive: boolean;
+  onPointerDown: (event: React.PointerEvent<HTMLDivElement>) => void;
+  onPointerMove: (event: React.PointerEvent<HTMLDivElement>) => void;
+  onPointerUp: (event: React.PointerEvent<HTMLDivElement>) => void;
+  onPointerCancel: (event: React.PointerEvent<HTMLDivElement>) => void;
+};
 
 function ColumnResizeHandle({
   columnId,
@@ -132,14 +62,7 @@ function ColumnResizeHandle({
   onPointerMove,
   onPointerUp,
   onPointerCancel,
-}: {
-  columnId: string;
-  isActive: boolean;
-  onPointerDown: (event: React.PointerEvent<HTMLDivElement>) => void;
-  onPointerMove: (event: React.PointerEvent<HTMLDivElement>) => void;
-  onPointerUp: (event: React.PointerEvent<HTMLDivElement>) => void;
-  onPointerCancel: (event: React.PointerEvent<HTMLDivElement>) => void;
-}) {
+}: ResizeHandleProps) {
   return (
     <div
       role="separator"
@@ -150,13 +73,12 @@ function ColumnResizeHandle({
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerCancel}
       onClick={(event) => event.stopPropagation()}
-      className="group/handle absolute right-0 top-0 z-10 flex h-full w-5 translate-x-1/2 cursor-col-resize touch-none items-center justify-center"
+      className={cn('mt-resize-handle', isActive && 'mt-resize-handle--active')}
     >
       <span
         className={cn(
-          'h-6 w-1 rounded-full bg-border shadow-sm transition-colors',
-          'group-hover/handle:bg-muted-foreground/70',
-          isActive && 'bg-primary',
+          'mt-resize-handle-line',
+          isActive && 'mt-resize-handle-line--active',
         )}
       />
     </div>
@@ -180,93 +102,45 @@ export function DataTable<T>({
   tableKey,
   enableColumnSettings = true,
 }: DataTableProps<T>) {
-  const columnSettingsEnabled = enableColumnSettings && Boolean(tableKey);
+  const table = useTable({
+    data,
+    columns: columns as ColumnDef<T>[],
+    tableKey,
+    enableColumnSettings,
+    showRowNumbers,
+    resizable,
+  });
 
-  const {
-    visibleColumns,
-    settingsItems,
-    reorderColumns,
-    toggleColumnVisibility,
-    resetPreferences,
-  } = useDataTableColumnPreferences(tableKey ?? 'default', columns, columnSettingsEnabled);
-
-  const dataColumns = columnSettingsEnabled ? visibleColumns : columns;
-  const sortableColumns = React.useMemo(
-    () => toSortableColumnDefs(dataColumns),
-    [dataColumns],
-  );
-  const table = useTable({ data, columns: sortableColumns });
+  const allColumns = table.getColumns();
+  const columnWidths = table.getColumnWidths();
+  const activeResizeIndex = table.getActiveResizeIndex();
   const sorting = table.getSorting();
-  const displayData = React.useMemo(
-    () =>
-      sortableColumns.length > 0
-        ? table.getRows().map((row) => row.original)
-        : data,
-    [data, sortableColumns.length, table, sorting],
-  );
+  const displayRows = table.getRows();
 
-  const settingsHeader = React.useMemo(
-    () => (
-      <DataTableColumnSettings
-        columns={settingsItems}
-        onReorder={reorderColumns}
-        onToggleVisibility={toggleColumnVisibility}
-        onReset={resetPreferences}
-      />
-    ),
-    [reorderColumns, resetPreferences, settingsItems, toggleColumnVisibility],
-  );
-
-  const allColumns = React.useMemo(
-    () =>
-      withSettingsColumn(
-        withRowNumberColumn(dataColumns, showRowNumbers),
-        settingsHeader,
-        columnSettingsEnabled,
-      ),
-    [columnSettingsEnabled, dataColumns, settingsHeader, showRowNumbers],
-  );
-
-  const [columnWidths, setColumnWidths] = React.useState(() =>
-    getInitialColumnWidths(allColumns),
-  );
-  const [activeResizeIndex, setActiveResizeIndex] = React.useState<number | null>(
-    null,
-  );
-  const resizeRef = React.useRef<ResizeSession | null>(null);
   const blockSortClickRef = React.useRef(false);
   const headerRefs = React.useRef<Record<string, HTMLTableCellElement | null>>({});
-  const containerRef = React.useRef<HTMLDivElement>(null);
-  const hasNormalizedRef = React.useRef(false);
-
-  React.useEffect(() => {
-    setColumnWidths((current) => mergeColumnWidths(allColumns, current));
-  }, [allColumns]);
+  const visibleColumnIds = allColumns.map((col) => col.id).join(',');
 
   React.useLayoutEffect(() => {
     const container = containerRef.current;
 
-    if (!container || hasNormalizedRef.current) {
+    if (!container) {
       return;
     }
 
-    hasNormalizedRef.current = true;
-
-    setColumnWidths((current) =>
-      scaleColumnWidthsToFit(allColumns, current, container.clientWidth),
-    );
-  }, [allColumns]);
+    table.scaleWidthsToFit(container.clientWidth);
+  }, [visibleColumnIds, table]);
 
   const tableWidth = sumColumnWidths(allColumns, columnWidths);
 
   const handleResizeStart = React.useCallback(
     (event: React.PointerEvent<HTMLDivElement>, columnIndex: number) => {
-      if (!canResizeColumnPair(allColumns, columnIndex, resizable)) {
+      const column = allColumns[columnIndex];
+      const nextColumn = allColumns[columnIndex + 1];
+
+      if (!column || !nextColumn) {
         return;
       }
-
-      const column = allColumns[columnIndex]!;
-      const nextColumn = allColumns[columnIndex + 1]!;
 
       event.preventDefault();
       event.stopPropagation();
@@ -278,65 +152,30 @@ export function DataTable<T>({
         return;
       }
 
-      resizeRef.current = {
+      table.startResize(
         columnIndex,
-        pointerId: event.pointerId,
-        startX: event.clientX,
-        startWidth: headerCell.getBoundingClientRect().width,
-        neighborStartWidth: neighborCell.getBoundingClientRect().width,
-      };
+        event.clientX,
+        headerCell.getBoundingClientRect().width,
+        neighborCell.getBoundingClientRect().width,
+      );
 
-      setActiveResizeIndex(columnIndex);
       event.currentTarget.setPointerCapture(event.pointerId);
       document.body.style.cursor = 'col-resize';
       document.body.style.userSelect = 'none';
     },
-    [allColumns, resizable],
+    [allColumns, table],
   );
 
   const handleResizeMove = React.useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
-      const resize = resizeRef.current;
-
-      if (!resize || event.pointerId !== resize.pointerId) {
-        return;
-      }
-
-      const column = allColumns[resize.columnIndex];
-      const nextColumn = allColumns[resize.columnIndex + 1];
-
-      if (!column || !nextColumn) {
-        return;
-      }
-
-      const delta = event.clientX - resize.startX;
-      const { left, right } = resolvePairColumnResize(
-        column,
-        nextColumn,
-        resize.startWidth,
-        resize.neighborStartWidth,
-        delta,
-      );
-
-      setColumnWidths((current) => ({
-        ...current,
-        [column.id]: left,
-        [nextColumn.id]: right,
-      }));
+      table.resizeMove(event.clientX);
     },
-    [allColumns],
+    [table],
   );
 
   const handleResizeEnd = React.useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
-      const resize = resizeRef.current;
-
-      if (!resize || event.pointerId !== resize.pointerId) {
-        return;
-      }
-
-      resizeRef.current = null;
-      setActiveResizeIndex(null);
+      table.endResize();
       blockSortClickRef.current = true;
 
       if (event.currentTarget.hasPointerCapture(event.pointerId)) {
@@ -346,26 +185,28 @@ export function DataTable<T>({
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
     },
-    [],
+    [table],
   );
 
-  const wrapperClassName =
-    variant === 'default'
-      ? 'overflow-hidden rounded-lg border border-border bg-background'
-      : 'overflow-x-auto';
+  const settingsHeader = React.useMemo(
+    () => <DataTableColumnSettings table={table} />,
+    [table],
+  );
 
   return (
     <div
       ref={containerRef}
       className={cn(
-        wrapperClassName,
-        fillHeight && 'flex h-full min-h-0 flex-col',
+        'mt-theme',
+        'mt-wrapper',
+        variant === 'default' ? 'mt-wrapper--default' : 'mt-wrapper--plain',
+        fillHeight && 'mt-wrapper--fill-height',
         className,
       )}
     >
-      <div className={cn('overflow-x-auto', fillHeight && 'min-h-0 flex-1')}>
-        <Table
-          className={cn('table-fixed', tableClassName)}
+      <div className="mt-container">
+        <table
+          className={cn('mt-table', tableClassName)}
           style={{ width: tableWidth }}
         >
           <colgroup>
@@ -374,27 +215,31 @@ export function DataTable<T>({
             ))}
           </colgroup>
 
-          <TableHeader>
-            <TableRow className="hover:bg-transparent">
+          <thead className="mt-thead">
+            <tr className="mt-tr mt-tr--header">
               {allColumns.map((column, columnIndex) => {
-                const canResize = canResizeColumnPair(
-                  allColumns,
-                  columnIndex,
-                  resizable,
-                );
-                const sortable = canSortColumn(column);
+                const isSpecial = isSpecialColumn(column.id);
+                const canResize =
+                  resizable &&
+                  column.enableResize !== false &&
+                  columnIndex < allColumns.length - 1 &&
+                  !isSettingsColumn(allColumns[columnIndex + 1]!.id);
+                const sortable =
+                  column.accessor &&
+                  column.enableSorting !== false &&
+                  !isSpecial;
                 const active = sorting?.id === column.id;
 
                 return (
-                  <TableHead
+                  <th
                     key={column.id}
                     ref={(element) => {
                       headerRefs.current[column.id] = element;
                     }}
                     style={{ width: columnWidths[column.id] }}
                     className={cn(
-                      'relative select-none',
-                      sortable && 'cursor-pointer',
+                      'mt-th',
+                      sortable && 'mt-sort-header',
                       column.headerClassName,
                     )}
                     onClick={
@@ -404,17 +249,16 @@ export function DataTable<T>({
                               blockSortClickRef.current = false;
                               return;
                             }
-
                             table.toggleSort(column.id);
                           }
                         : undefined
                     }
                   >
                     {isSettingsColumn(column.id) ? (
-                      <div className="flex justify-center">{column.header}</div>
+                      settingsHeader
                     ) : (
-                      <span className="inline-flex items-center gap-1 truncate pr-4">
-                        {column.header}
+                      <span className="mt-sort-label">
+                        {column.header as ReactNode}
                         {sortable ? (
                           <SortIcon active={active} desc={sorting?.desc ?? false} />
                         ) : null}
@@ -432,35 +276,33 @@ export function DataTable<T>({
                         onPointerCancel={handleResizeEnd}
                       />
                     ) : null}
-                  </TableHead>
+                  </th>
                 );
               })}
-            </TableRow>
-          </TableHeader>
+            </tr>
+          </thead>
 
-          <TableBody>
-            {displayData.length === 0 ? (
-              <TableRow className="hover:bg-transparent">
-                <TableCell
-                  colSpan={allColumns.length}
-                  className="h-16 text-center text-muted-foreground"
-                >
+          <tbody className="mt-tbody">
+            {displayRows.length === 0 ? (
+              <tr className="mt-tr mt-tr--header">
+                <td colSpan={allColumns.length} className="mt-td--empty">
                   {emptyMessage}
-                </TableCell>
-              </TableRow>
+                </td>
+              </tr>
             ) : (
-              displayData.map((row, rowIndex) => {
-                const rowKey = getRowKey(row);
+              displayRows.map((row, rowIndex) => {
+                const rowKey = getRowKey(row.original);
                 const isSelected =
                   selectedRowKey !== null && selectedRowKey === rowKey;
 
                 return (
-                  <TableRow
+                  <tr
                     key={rowKey}
                     data-state={isSelected ? 'selected' : undefined}
                     className={cn(
-                      onRowClick && 'cursor-pointer',
-                      isSelected && 'bg-muted/40 hover:bg-muted/40',
+                      'mt-tr',
+                      onRowClick && 'mt-tr--clickable',
+                      isSelected && 'mt-tr--selected',
                     )}
                     onClick={
                       onRowClick
@@ -471,36 +313,39 @@ export function DataTable<T>({
                               return;
                             }
 
-                            onRowClick(row);
+                            onRowClick(row.original);
                           }
                         : undefined
                     }
                   >
                     {allColumns.map((column) => (
-                      <TableCell
+                      <td
                         key={column.id}
                         style={{ width: columnWidths[column.id] }}
                         className={cn(
-                          !isSpecialLayoutColumn(column.id) && 'truncate',
+                          'mt-td',
+                          !isSpecialColumn(column.id) && 'mt-td--truncate',
                           column.className,
                         )}
                       >
                         {isRowNumberColumn(column.id)
                           ? rowNumberOffset + rowIndex + 1
-                          : column.cell(row)}
-                      </TableCell>
+                          : column.cell
+                            ? (column.cell(row.original) as ReactNode)
+                            : null}
+                      </td>
                     ))}
-                  </TableRow>
+                  </tr>
                 );
               })
             )}
-          </TableBody>
-        </Table>
+          </tbody>
+        </table>
       </div>
     </div>
   );
 }
 
-function isSpecialLayoutColumn(columnId: string): boolean {
+function isSpecialColumn(columnId: string): boolean {
   return isRowNumberColumn(columnId) || isSettingsColumn(columnId);
 }

@@ -1,30 +1,19 @@
 import * as React from 'react';
-
+import type { TableApi } from '@my-table/core';
 import { GripVerticalIcon, RotateCcwIcon, Settings2Icon } from './icons';
 import { cn } from '../lib/utils';
-import { Button } from './ui/button';
-import { Checkbox } from './ui/checkbox';
 
-import type { ColumnSettingsItem } from '@my-table/core';
-
-type Props = {
-  columns: ColumnSettingsItem[];
-  onReorder: (activeId: string, overId: string) => void;
-  onToggleVisibility: (columnId: string) => void;
-  onReset: () => void;
+type Props<T> = {
+  table: TableApi<T>;
 };
 
-export function DataTableColumnSettings({
-  columns,
-  onReorder,
-  onToggleVisibility,
-  onReset,
-}: Props) {
+export function DataTableColumnSettings<T>({ table }: Props<T>) {
   const [open, setOpen] = React.useState(false);
   const [draggedId, setDraggedId] = React.useState<string | null>(null);
   const [dragOverId, setDragOverId] = React.useState<string | null>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
 
+  const columns = table.getColumnSettingsItems();
   const visibleCount = columns.filter((column) => column.visible).length;
 
   React.useEffect(() => {
@@ -43,31 +32,26 @@ export function DataTableColumnSettings({
   }, [open]);
 
   return (
-    <div ref={containerRef} className="relative inline-flex">
-      <Button
+    <div ref={containerRef} className="mt-settings">
+      <button
         type="button"
-        variant="ghost"
-        size="icon"
-        className="size-7 text-muted-foreground"
+        className="mt-settings-trigger"
         data-prevent-row-click
         aria-label="Column settings"
         aria-expanded={open}
         onClick={() => setOpen((current) => !current)}
       >
-        <Settings2Icon className="size-4" />
-      </Button>
+        <Settings2Icon style={{ width: 16, height: 16 }} />
+      </button>
 
       {open ? (
-        <div
-          className="absolute right-0 top-full z-50 mt-1 w-64 rounded-md border border-border bg-background p-2 shadow-md"
-          data-prevent-row-click
-        >
-          <div className="px-1 py-1 text-sm font-medium">Columns</div>
-          <p className="px-1 pb-2 text-xs text-muted-foreground">
+        <div className="mt-settings-dropdown" data-prevent-row-click>
+          <div className="mt-settings-title">Columns</div>
+          <p className="mt-settings-desc">
             Drag to reorder. Toggle visibility for columns you do not need.
           </p>
 
-          <div className="space-y-1">
+          <div className="mt-settings-list">
             {columns.map((column) => {
               const isDragged = draggedId === column.id;
               const isDragOver =
@@ -96,36 +80,38 @@ export function DataTableColumnSettings({
                     event.preventDefault();
 
                     if (draggedId && draggedId !== column.id) {
-                      onReorder(draggedId, column.id);
+                      table.reorderColumns(draggedId, column.id);
                     }
 
                     setDraggedId(null);
                     setDragOverId(null);
                   }}
                   className={cn(
-                    'flex items-center gap-2 rounded-md border border-transparent px-1 py-1.5',
-                    isDragged && 'opacity-50',
-                    isDragOver && 'border-border bg-muted/50',
+                    'mt-settings-item',
+                    isDragged && 'mt-settings-item--dragged',
+                    isDragOver && 'mt-settings-item--drag-over',
                   )}
                 >
                   <button
                     type="button"
-                    className="cursor-grab text-muted-foreground active:cursor-grabbing"
+                    className="mt-settings-grab"
                     aria-label={`Reorder ${column.label}`}
                     onMouseDown={(event) => event.stopPropagation()}
                   >
-                    <GripVerticalIcon className="size-4" />
+                    <GripVerticalIcon style={{ width: 16, height: 16 }} />
                   </button>
-                  <Checkbox
+                  <input
+                    type="checkbox"
                     checked={column.visible}
                     disabled={!column.hideable || disableHide}
-                    onCheckedChange={() => onToggleVisibility(column.id)}
+                    onChange={() => table.toggleColumnVisibility(column.id)}
+                    className="mt-settings-checkbox"
                     aria-label={`Toggle ${column.label} column`}
                   />
                   <span
                     className={cn(
-                      'min-w-0 flex-1 truncate text-sm',
-                      !column.visible && 'text-muted-foreground',
+                      'mt-settings-label',
+                      !column.visible && 'mt-settings-label--hidden',
                     )}
                   >
                     {column.label}
@@ -135,18 +121,16 @@ export function DataTableColumnSettings({
             })}
           </div>
 
-          <div className="my-2 h-px bg-border" />
+          <div className="mt-settings-separator" />
 
-          <Button
+          <button
             type="button"
-            variant="ghost"
-            size="sm"
-            className="w-full justify-start"
-            onClick={onReset}
+            className="mt-settings-reset"
+            onClick={() => table.resetPreferences()}
           >
-            <RotateCcwIcon className="size-3.5" />
+            <RotateCcwIcon style={{ width: 13, height: 13 }} />
             Reset columns
-          </Button>
+          </button>
         </div>
       ) : null}
     </div>
