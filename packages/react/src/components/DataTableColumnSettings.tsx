@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as ReactDOM from 'react-dom';
 import type { TableApi } from '@my-table/core';
 import { GripVerticalIcon, RotateCcwIcon, Settings2Icon } from './icons';
 import { cn } from '../lib/utils';
@@ -11,41 +12,67 @@ export function DataTableColumnSettings<T>({ table }: Props<T>) {
   const [open, setOpen] = React.useState(false);
   const [draggedId, setDraggedId] = React.useState<string | null>(null);
   const [dragOverId, setDragOverId] = React.useState<string | null>(null);
-  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+
+  // Position state for the fixed portal dropdown
+  const [dropdownStyle, setDropdownStyle] = React.useState<React.CSSProperties>({});
 
   const columns = table.getColumnSettingsItems();
   const visibleCount = columns.filter((column) => column.visible).length;
 
+  // Recalculate position whenever the dropdown opens or on scroll/resize
+  const updatePosition = React.useCallback(() => {
+    if (!triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    setDropdownStyle({
+      position: 'fixed',
+      top: rect.bottom + 4,
+      right: window.innerWidth - rect.right,
+      // Width and z-index come from the CSS class; just ensure no left override
+      left: 'auto',
+    });
+  }, []);
+
+  React.useLayoutEffect(() => {
+    if (open) updatePosition();
+  }, [open, updatePosition]);
+
+  // Click-outside: close if click lands outside both the trigger and the portal
   React.useEffect(() => {
-    if (!open) {
-      return;
-    }
+    if (!open) return;
 
     const handlePointerDown = (event: MouseEvent) => {
-      if (!containerRef.current?.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (
+        !triggerRef.current?.contains(target) &&
+        !dropdownRef.current?.contains(target)
+      ) {
         setOpen(false);
       }
     };
 
+    // Reposition on scroll or resize while open
+    window.addEventListener('scroll', updatePosition, true);
+    window.addEventListener('resize', updatePosition);
     document.addEventListener('mousedown', handlePointerDown);
-    return () => document.removeEventListener('mousedown', handlePointerDown);
-  }, [open]);
 
-  return (
-    <div ref={containerRef} className="mt-settings">
-      <button
-        type="button"
-        className="mt-settings-trigger"
-        data-prevent-row-click
-        aria-label="Column settings"
-        aria-expanded={open}
-        onClick={() => setOpen((current) => !current)}
-      >
-        <Settings2Icon style={{ width: 16, height: 16 }} />
-      </button>
+    return () => {
+      window.removeEventListener('scroll', updatePosition, true);
+      window.removeEventListener('resize', updatePosition);
+      document.removeEventListener('mousedown', handlePointerDown);
+    };
+  }, [open, updatePosition]);
 
-      {open ? (
-        <div className="mt-settings-dropdown" data-prevent-row-click>
+  const dropdown = open
+    ? ReactDOM.createPortal(
+        <div
+          ref={dropdownRef}
+          className="mt-theme mt-settings-dropdown"
+          data-prevent-row-click
+          style={dropdownStyle}
+        >
           <div className="mt-settings-title">Columns</div>
           <p className="mt-settings-desc">
             Drag to reorder. Toggle visibility for columns you do not need.
@@ -131,8 +158,26 @@ export function DataTableColumnSettings<T>({ table }: Props<T>) {
             <RotateCcwIcon style={{ width: 13, height: 13 }} />
             Reset columns
           </button>
-        </div>
-      ) : null}
+        </div>,
+        document.body,
+      )
+    : null;
+
+  return (
+    <div className="mt-settings">
+      <button
+        ref={triggerRef}
+        type="button"
+        className="mt-settings-trigger"
+        data-prevent-row-click
+        aria-label="Column settings"
+        aria-expanded={open}
+        onClick={() => setOpen((current) => !current)}
+      >
+        <Settings2Icon style={{ width: 16, height: 16 }} />
+      </button>
+
+      {dropdown}
     </div>
   );
 }

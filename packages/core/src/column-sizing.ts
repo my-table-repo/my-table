@@ -38,7 +38,7 @@ export function scaleColumnWidthsToFit<T extends SizedColumn>(
 ): Record<string, number> {
   const total = sumColumnWidths(columns, widths);
 
-  if (total <= 0 || containerWidth <= 0 || total >= containerWidth) {
+  if (total <= 0 || containerWidth <= 0) {
     return widths;
   }
 

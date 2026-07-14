@@ -215,11 +215,7 @@
 }
 
 .mt-settings-dropdown {
-  position: absolute;
-  right: 0;
-  top: 100%;
   z-index: 50;
-  margin-top: 4px;
   width: 256px;
   padding: 8px;
   background: var(--mt-color-bg);
@@ -241,6 +237,8 @@
   font-size: 11px;
   color: var(--mt-color-text-muted);
   line-height: 1.35;
+  overflow-wrap: break-word;
+  max-width: 100%;
 }
 
 .mt-settings-list {
