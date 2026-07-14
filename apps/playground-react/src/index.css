@@ -1,13 +1,13 @@
+/* ─── Design tokens ─── */
 :root {
   --text: #6b6375;
   --text-h: #08060d;
-  --bg: #fff;
+  --bg: #ffffff;
   --border: #e5e4e7;
   --code-bg: #f4f3ec;
   --accent: #aa3bff;
   --accent-bg: rgba(170, 59, 255, 0.1);
   --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
   --shadow:
     rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
 
@@ -15,39 +15,49 @@
   --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
+  color-scheme: light;
+}
+
+/* ─── Dark mode: toggled via .dark class on <html> ─── */
+.dark {
+  --text: #9ca3af;
+  --text-h: #f3f4f6;
+  --bg: #16171d;
+  --border: #2e303a;
+  --code-bg: #1f2028;
+  --accent: #c084fc;
+  --accent-bg: rgba(192, 132, 252, 0.15);
+  --accent-border: rgba(192, 132, 252, 0.5);
+  --shadow:
+    rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+
+  color-scheme: dark;
+}
+
+/* ─── Base elements ─── */
+html {
   font: 18px/145% var(--sans);
   letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg);
+  color: var(--text);
+  transition: background-color 0.25s ease, color 0.25s ease;
 
   @media (max-width: 1024px) {
     font-size: 16px;
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg);
+  color: var(--text);
+  min-height: 100%;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 #root {
@@ -60,37 +70,40 @@
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  transition: border-color 0.25s ease;
 }
 
-body {
-  margin: 0;
-}
-
+/* ─── Typography ─── */
 h1,
 h2 {
   font-family: var(--heading);
   font-weight: 500;
   color: var(--text-h);
+  transition: color 0.25s ease;
 }
 
 h1 {
   font-size: 56px;
   letter-spacing: -1.68px;
   margin: 32px 0;
+
   @media (max-width: 1024px) {
     font-size: 36px;
     margin: 20px 0;
   }
 }
+
 h2 {
   font-size: 24px;
   line-height: 118%;
   letter-spacing: -0.24px;
   margin: 0 0 8px;
+
   @media (max-width: 1024px) {
     font-size: 20px;
   }
 }
+
 p {
   margin: 0;
 }
@@ -108,11 +121,21 @@ code {
   line-height: 135%;
   padding: 4px 8px;
   background: var(--code-bg);
+  transition: background-color 0.25s ease;
 }
 
+/* ─── Playground layout ─── */
 .playground-page {
   padding: 32px;
   text-align: left;
+}
+
+.playground-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
 }
 
 .playground-title {
@@ -123,30 +146,45 @@ code {
 }
 
 .playground-subtitle {
-  margin: 0 0 24px;
+  margin: 0;
   font-size: 14px;
   color: var(--text);
 }
 
-.mt-playground-badge {
+/* ─── Theme toggle button ─── */
+.theme-toggle {
   display: inline-flex;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.mt-playground-badge--active {
-  background: #ddf4e4;
-  color: #1a7f37;
-}
-
-.mt-playground-badge--away {
-  background: #fef3d7;
-  color: #9a6700;
-}
-
-.mt-playground-badge--inactive {
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
   background: var(--code-bg);
-  color: var(--text);
+  color: var(--text-h);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--sans);
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-top: 4px;
+  white-space: nowrap;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.1s ease;
+}
+
+.theme-toggle:hover {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+.theme-toggle:active {
+  transform: scale(0.97);
+}
+
+.theme-toggle svg {
+  flex-shrink: 0;
 }

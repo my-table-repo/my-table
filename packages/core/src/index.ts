@@ -68,3 +68,6 @@ export { toSortableColumnDefs } from './columns';
 
 export { sortingPlugin } from './plugins/sorting';
 export type { Plugin } from './plugins/types';
+
+export { getStatusBadgeClassName } from './utils/badge';
+

@@ -8,3 +8,5 @@ export type {
   ReactColumnDef,
 } from './DataTable';
 export type { ColumnSettingsItem } from '@my-table/core';
+export { StatusBadge, type StatusBadgeProps } from './components/StatusBadge';
+
