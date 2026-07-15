@@ -1,5 +1,6 @@
 /* base.css — design tokens, no visual opinions baked in except sane defaults */
 
+:root,
 .mt-theme {
   --mt-color-bg: #ffffff;
   --mt-color-bg-hover: #f8fafc;
@@ -37,30 +38,10 @@
   box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  .mt-theme {
-    --mt-color-bg: #0f172a;
-    --mt-color-bg-hover: #1e293b;
-    --mt-color-border: #334155;
-    --mt-color-border-subtle: #1e293b;
-    --mt-color-text: #f8fafc;
-    --mt-color-text-muted: #94a3b8;
-    --mt-color-header-text: #cbd5e1;
-    --mt-color-primary: #f8fafc;
-    --mt-color-primary-foreground: #0f172a;
-    --mt-color-ring: #cbd5e1;
-    --mt-color-badge-inactive-bg: #1e293b;
-    --mt-color-badge-inactive-text: #94a3b8;
-    --mt-color-badge-active-bg: rgba(34, 197, 94, 0.15);
-    --mt-color-badge-active-text: #86efac;
-    --mt-color-badge-away-bg: rgba(245, 158, 11, 0.15);
-    --mt-color-badge-away-text: #fcd34d;
-    --mt-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px -1px rgba(0, 0, 0, 0.3);
-    --mt-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
-  }
-}
-
-.dark .mt-theme {
+/* Dark theme variables applied when .dark class is on <html> or any parent */
+.dark,
+.dark .mt-theme,
+.dark.mt-theme {
   --mt-color-bg: #0f172a;
   --mt-color-bg-hover: #1e293b;
   --mt-color-border: #334155;
@@ -83,4 +64,4 @@
 
 .mt-theme * {
   box-sizing: border-box;
-}
+}
